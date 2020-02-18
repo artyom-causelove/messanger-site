@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <div class="app__header" v-if="$route.name !== 'home'">
+      aaaaaaaaaaaaaaaaaaaaaaaaaa
+    </div>
     <router-view/>
   </div>
 </template>
