@@ -20,7 +20,9 @@
   </section>
 
   <section class="auth" id="authForm">
-    <app-auth-form class="auth__form"/>
+    <app-auth-form
+      @signInError="signInError = $event"
+      class="auth__form"/>
   </section>
 
   <section class="our-advantages" id="ourAdvantages">
@@ -76,20 +78,35 @@
       </div>
     </div>
   </section>
+  <transition name="fade" duration="300">
+    <app-phone-modal-window
+      v-if="signInError != ''"
+      :closeButton="true"
+      @closeWindow="signInError = ''"
+      class="home-page__modal-window"
+      >{{ signInError }}</app-phone-modal-window>
+  </transition>
 </div>
 </template>
 
 <script>
 import appAuthForm from '@/components/form-components/app-auth-form'
 import appButton from '@/components/form-components/app-button'
+import appPhoneModalWindow from '@/components/modal-windows/app-phone-modal-window'
 import appWaveAnimation from '@/components/animation-components/app-wave-animation'
 
 export default {
   name: 'Home',
+  data () {
+    return {
+      signInError: ''
+    }
+  },
   components: {
     appAuthForm,
     appWaveAnimation,
-    appButton
+    appButton,
+    appPhoneModalWindow
   }
 }
 </script>
@@ -387,5 +404,34 @@ export default {
     font-weight: bold;
     color: rgba(0, 0, 0, 0.7);
   }
+}
+
+.home-page__modal-window {
+  z-index: 1000;
+
+  position: fixed;
+
+  top: 10px;
+  left: 50%;
+
+  width: 92%;
+
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  color: rgba($color: black, $alpha: 0.7);
+
+  transform: translateX(-50%);
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: .5s opacity;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to, .fade-leave {
+  opacity: 1;
 }
 </style>

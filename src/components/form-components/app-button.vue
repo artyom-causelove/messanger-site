@@ -1,6 +1,6 @@
 <template>
 <button class="app-button" @click="$emit('click')" :disabled="disabled">
-  <slot></slot>
+  <span class="app-button__text"><slot></slot></span>
 </button>
 </template>
 
@@ -31,6 +31,15 @@ export default {
 
   &:disabled {
     background-color: rgb(100, 100, 100);
+  }
+
+  &__text {
+    font-family: 'Roboto', sans-serif;
+    font-size: 17px;
+    text-transform: uppercase;
+    color: whitesmoke;
+    font-weight: bold;
+    letter-spacing: 1px;
   }
 }
 </style>
