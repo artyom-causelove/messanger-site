@@ -21,7 +21,12 @@
 
   <section class="auth" id="authForm">
     <app-auth-form
-      @signInError="signInError = $event"
+      @logouted="logout"
+      @signedIn="signInUser"
+      @signedUp="signUpNewUser"
+      @toAccountClicked="redirectToAccount"
+      :user="user"
+      :isLoading="isLoading"
       class="auth__form"/>
   </section>
 
@@ -78,35 +83,71 @@
       </div>
     </div>
   </section>
-  <transition name="fade" duration="300">
-    <app-phone-modal-window
-      v-if="signInError != ''"
-      :closeButton="true"
-      @closeWindow="signInError = ''"
-      class="home-page__modal-window"
-      >{{ signInError }}</app-phone-modal-window>
-  </transition>
 </div>
 </template>
 
 <script>
 import appAuthForm from '@/components/form-components/app-auth-form'
 import appButton from '@/components/form-components/app-button'
-import appPhoneModalWindow from '@/components/modal-windows/app-phone-modal-window'
 import appWaveAnimation from '@/components/animation-components/app-wave-animation'
+import userService from '@/services/user.service'
 
 export default {
   name: 'Home',
   data () {
     return {
-      signInError: ''
+      isLoading: false,
+      user: this.$store.state.user.getValue()
+    }
+  },
+  created () {
+    this.$store.state.user.subscribe(user => { this.user = user })
+  },
+  methods: {
+    async signUpNewUser ({ login, nickname, password }) {
+      this.isLoading = true
+
+      try {
+        await userService.signUp(login, nickname, password)
+
+        this.signInUser({ login, password })
+      } catch (exception) {
+        this.$emit('showError', exception.message)
+      } finally {
+        this.isLoading = false
+      }
+    },
+    async signInUser ({ login, password }) {
+      this.isLoading = true
+
+      try {
+        const user = await userService.login(login, password)
+
+        this.$store.commit('setUser', user)
+        this.$router.push({ name: 'account' })
+      } catch (exception) {
+        this.$emit('showError', exception.message)
+      } finally {
+        this.isLoading = false
+      }
+    },
+    async logout () {
+      try {
+        await userService.logout()
+
+        this.$store.commit('setDefaultUser')
+      } catch (exception) {
+        this.$emit('showError', exception.message)
+      }
+    },
+    redirectToAccount () {
+      this.$router.push({ name: 'account' })
     }
   },
   components: {
     appAuthForm,
     appWaveAnimation,
-    appButton,
-    appPhoneModalWindow
+    appButton
   }
 }
 </script>
@@ -404,23 +445,6 @@ export default {
     font-weight: bold;
     color: rgba(0, 0, 0, 0.7);
   }
-}
-
-.home-page__modal-window {
-  z-index: 1000;
-
-  position: fixed;
-
-  top: 10px;
-  left: 50%;
-
-  width: 92%;
-
-  font-family: 'Roboto', sans-serif;
-  font-size: 20px;
-  color: rgba($color: black, $alpha: 0.7);
-
-  transform: translateX(-50%);
 }
 
 .fade-enter-active, .fade-leave-active {

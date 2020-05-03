@@ -7,7 +7,7 @@
         key="login"
         class="app-auth-form__title">
         <span class="app-auth-form__action">Sign in</span>
-        <img class="app-auth-form__action-image" src="@/assets/images/login.svg">
+        <img loading="eager" class="app-auth-form__action-image" src="@/assets/images/login.svg">
       </div>
 
       <div v-else
@@ -59,14 +59,14 @@
     <img v-show="isLoading"
       class="app-auth-form__loading" src="@/assets/images/loading.svg">
   </transition>
-  <div v-if="$store.state.user.id"
+  <div v-if="user"
     class="app-auth-form__already-login">
     <app-button
-      @click="$router.push('account')"
+      @click="$emit('toAccountClicked')"
       class="app-auth-form__already-login-button"
     >To account</app-button>
     <app-button
-      @click="logout"
+      @click="$emit('logouted')"
       class="app-auth-form__already-login-button"
     >Logout</app-button>
   </div>
@@ -76,39 +76,18 @@
 <script>
 import appButton from '@/components/form-components/app-button'
 import { required, minLength } from 'vuelidate/lib/validators'
-import gql from 'graphql-tag'
-
-const ADD_NEW_USER = gql`
-  mutation ($personalId: String!, $nickname: String!, $password: String!) {
-    addUser(personalId: $personalId, nickname: $nickname, password: $password) {
-      id
-      personalId
-      nickname
-      password
-      age
-      status
-      lastVisit
-    }
-  }
-`
-
-const SIGN_IN_USER = gql`
-  mutation ($personalId: String!, $password: String!) {
-    loginUser(personalId: $personalId, password: $password) {
-      id
-      personalId
-      nickname
-      password
-      age
-      status
-      lastVisit
-      apiKey
-    }
-  }
-`
 
 export default {
   name: 'app-auth-form',
+  props: {
+    isLoading: {
+      type: Boolean,
+      required: true
+    },
+    user: {
+      required: true
+    }
+  },
   data () {
     return {
       login: '',
@@ -121,8 +100,7 @@ export default {
       inAnimation: false,
       loginError: '',
       passwordError: '',
-      nicknameError: '',
-      isLoading: false
+      nicknameError: ''
     }
   },
   validations: {
@@ -196,11 +174,6 @@ export default {
     this.realHeight = formHeight
   },
   methods: {
-    logout () {
-      this.$store.commit('setDefaultUser')
-
-      window.localStorage.removeItem('apiKey')
-    },
     setInputValue (number) {
       switch (number) {
         case 1:
@@ -216,9 +189,16 @@ export default {
     },
     startAction () {
       if (this.isLogin) {
-        this.signInUser()
+        this.$emit('signedIn', {
+          login: this.login,
+          password: this.password
+        })
       } else {
-        this.signUpNewUser()
+        this.$emit('signedUp', {
+          login: this.login,
+          nickname: this.nickname,
+          password: this.password
+        })
       }
     },
     swapAction () {
@@ -229,46 +209,6 @@ export default {
       } else {
         this.inreaseFormHeight()
       }
-    },
-    signUpNewUser () {
-      this.isLoading = true
-      this.$apollo.mutate({
-        mutation: ADD_NEW_USER,
-        variables: {
-          personalId: this.login,
-          nickname: this.nickname,
-          password: this.password
-        }
-      })
-        .then(({ data }) => {
-          this.isLoading = false
-
-          this.signInUser()
-        })
-    },
-    signInUser () {
-      this.isLoading = true
-      this.$apollo.mutate({
-        mutation: SIGN_IN_USER,
-        variables: {
-          personalId: this.login,
-          password: this.password
-        }
-      })
-        .then(({ data }) => {
-          delete data.loginUser.__typename
-          this.$store.commit('setUser', data.loginUser)
-
-          window.localStorage.setItem('apiKey', JSON.stringify(data.loginUser.apiKey))
-
-          this.$router.push('account')
-        })
-        .catch(reason => {
-          this.$emit('signInError', reason.message.replace('GraphQL error: ', ''))
-        })
-        .finally(() => {
-          this.isLoading = false
-        })
     },
     inreaseFormHeight () {
       const input = this.$refs['input']
@@ -406,7 +346,7 @@ export default {
     font-family: 'Roboto', sans-serif;
     font-size: 13px;
     line-height: 13px;
-    color: #9b0000;
+    color: $error-color;
 
     min-height: calc(1em + 14px);
 

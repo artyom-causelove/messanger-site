@@ -1,36 +1,27 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import { BehaviorSubject } from 'rxjs'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    user: {
-      id: null,
-      personalId: null,
-      password: null,
-      nickname: null,
-      age: null,
-      status: null,
-      lastVisit: null,
-      apiKey: null
-    }
+    user: new BehaviorSubject(),
+    conferences: new BehaviorSubject([])
   },
   mutations: {
     setUser (state, payload) {
-      state.user = payload
+      state.user.next(payload)
     },
     setDefaultUser (state) {
-      state.user = {
-        id: null,
-        personalId: null,
-        password: null,
-        nickname: null,
-        age: null,
-        status: null,
-        lastVisit: null,
-        apiKey: null
-      }
+      state.user.next(null)
+      state.conferences.next([])
+    },
+    setConferences (state, payload) {
+      state.conferences.next(payload)
+    },
+    addConferences (state, payload) {
+      state.conferences.getValue().unshift(payload)
     }
   },
   actions: {

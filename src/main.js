@@ -5,14 +5,11 @@ import router from './router'
 import store from './store'
 import vuelidate from 'vuelidate'
 
-import { createProvider } from './vue-apollo'
-
 Vue.config.productionTip = false
 Vue.use(vuelidate)
 
 new Vue({
   router,
   store,
-  apolloProvider: createProvider(),
   render: h => h(App)
 }).$mount('#app')
