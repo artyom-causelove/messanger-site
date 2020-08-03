@@ -51,38 +51,6 @@
   <section class="author">
     <span class="author__text">Causelove</span>
   </section>
-
-  <section class="awesome-team">
-    <p class="awesome-team__title">Team</p>
-    <div class="awesome-team__wrapper">
-      <div class="awesome-team__column">
-        <div class="awesome-team__column-item">
-          <img class="awesome-team__column-image" src="@/assets/images/alex.png">
-          <p class="awesome-team__column-name">Alex</p>
-        </div>
-        <div class="awesome-team__column-item">
-          <img class="awesome-team__column-image" src="@/assets/images/andrey.png">
-          <p class="awesome-team__column-name">Andrey</p>
-        </div>
-      </div>
-      <div class="awesome-team__column">
-        <div class="awesome-team__column-item">
-          <img class="awesome-team__column-image" src="@/assets/images/master.png">
-          <p class="awesome-team__column-name">Coach</p>
-        </div>
-      </div>
-      <div class="awesome-team__column">
-        <div class="awesome-team__column-item">
-          <img class="awesome-team__column-image" src="@/assets/images/vovan.png">
-          <p class="awesome-team__column-name">Vovan</p>
-        </div>
-        <div class="awesome-team__column-item">
-          <img class="awesome-team__column-image" src="@/assets/images/artyom.png">
-          <p class="awesome-team__column-name">Artyom</p>
-        </div>
-      </div>
-    </div>
-  </section>
 </div>
 </template>
 

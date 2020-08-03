@@ -40,7 +40,7 @@ export default {
       notifications: [
         {
           type: 'inviteToConf',
-          participants: ['Zalupa', ' Ivan', ' Egor'],
+          participants: ['Peter', ' Ivan', ' Egor'],
           avatar: null,
           name: 'AWddwada'
         }
