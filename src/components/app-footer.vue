@@ -19,7 +19,7 @@
         />
       </svg>
     </router-link>
-    <router-link class="app-footer__link" to="/notifycation" active-class="active">
+    <router-link class="app-footer__link" to="/notify" active-class="active">
       <svg class="app-footer__icon" width="26" height="31" viewBox="0 0 26 31">
         <path d="m12.718 31c1.7566 0 3.1795-1.4228 3.1795-3.1795h-6.359c-7e-5 1.7567 1.4228 3.1795 3.1795 3.1795z"/>
         <path d="m22.256 21.462v-7.9487c0-4.8885-2.5992-8.9662-7.1538-10.047v-1.081c0-1.3195-1.0651-2.3846-2.3846-2.3846s-2.3846
@@ -111,6 +111,7 @@ export default {
     width: calc(100% / 5);
 
     align-items: center;
+    -webkit-tap-highlight-color: transparent;
   }
 
   &__icon {

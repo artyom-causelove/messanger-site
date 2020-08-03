@@ -84,6 +84,7 @@ export default {
     align-items: center;
 
     border: none;
+    outline: none;
     background-color: transparent;
 
     &:first-child {

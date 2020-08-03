@@ -1,23 +1,5 @@
 <template>
   <div id="app" class="app">
-    <app-header
-      v-if="$route.name === 'account'"
-      @showError="onShowError"
-      class="app__account-header app__header">
-      <app-editable-input
-        v-model="nickname"
-        @input="setInputValue"
-        @valueChanged="onNicknameChanged"
-        class="app__account-header-input"/>
-    </app-header>
-    <div v-else-if="$route.name === 'home'"></div>
-    <app-header
-      v-else
-      class="app__other-header app__header">
-      <span class="app__other-header-text">
-        {{ $route.name[0].toUpperCase() + $route.name.slice(1) }}
-      </span>
-    </app-header>
     <router-view
       class="app__content"
       @showError="onShowError"/>
@@ -34,41 +16,17 @@
 </template>
 
 <script>
-import AppHeader from '@/components/app-header'
 import appPhoneModalWindow from '@/components/modal-windows/app-phone-modal-window'
-import AppEditableInput from '@/components/form-components/app-editable-input'
 import AppFooter from '@/components/app-footer'
 import userService from '@/services/user.service'
 import conferenceService from '@/services/conference.service'
-import { required } from 'vuelidate/lib/validators'
 
 export default {
   name: 'app',
   data () {
     return {
       error: '',
-      user: this.$store.state.user.getValue(),
-      nickname: 'Loading...',
-      nicknameError: ''
-    }
-  },
-  validations: {
-    nickname: {
-      required
-    }
-  },
-  watch: {
-    $v: {
-      handler (val) {
-        if (this.$v.nickname.$dirty) {
-          if (!this.$v.nickname.required) {
-            this.nicknameError = 'Min count of chars is 1'
-          } else {
-            this.nicknameError = ''
-          }
-        }
-      },
-      deep: true
+      user: this.$store.state.user.getValue()
     }
   },
   async created () {
@@ -79,11 +37,29 @@ export default {
         this.$router.push({ name: 'home' })
         this.error = 'You are not sign in'
       } else if (this.user) {
-        this.nickname = this.user.nickname
-
         const conferences = await conferenceService.getConferences(this.user.conferences)
+        const socket = conferenceService.startSocket({ apiKey: userService.getApiKey() })
+        this.$store.commit('setSocket', socket)
         this.$store.commit('setConferences', conferences)
+
+        socket.on('messageFromConf', async message => {
+          if (this.$store.state.messages.length !== 0) {
+            this.$store.commit('addMessages', { confId: message.confId, messages: message })
+          }
+        })
       }
+    })
+
+    this.$store.state.conferences.subscribe(conferences => {
+      conferences.forEach(async conf => {
+        const messageBlock = await conferenceService.getMessageBlock(conf['_id'], 0)
+        this.$store.commit('addMessagesObj', conf['_id'])
+
+        if (messageBlock.systemMessage !== 'empty') {
+          const messages = await conferenceService.getMessages(messageBlock['_id'])
+          this.$store.commit('addMessages', { confId: conf['_id'], messages })
+        }
+      })
     })
 
     try {
@@ -98,35 +74,11 @@ export default {
   methods: {
     onShowError (error) {
       this.error = error
-    },
-    setInputValue () {
-      this.$v.nickname.$touch()
-    },
-    async onNicknameChanged (nickname) {
-      if (!this.$v.nickname.required) {
-        this.nickname = this.user.nickname
-        this.$emit('showError', this.nicknameError)
-
-        return
-      }
-
-      try {
-        if (nickname !== this.user.nickname) {
-          const editedUser = await userService.edit(this.user._id, { nickname })
-          this.$store.commit('setUser', editedUser)
-        }
-      } catch (exception) {
-        this.$emit('showError', exception.message)
-
-        this.nickname = this.user.nickname
-      }
     }
   },
   components: {
-    AppHeader,
     AppFooter,
-    appPhoneModalWindow,
-    AppEditableInput
+    appPhoneModalWindow
   }
 }
 </script>
@@ -140,10 +92,6 @@ export default {
 
   width: 100vw;
   height: 100vh;
-
-  &__header {
-    flex-shrink: 0;
-  }
 
   &__content {
     position: relative;
@@ -171,27 +119,6 @@ export default {
     color: rgba($color: black, $alpha: 0.7);
 
     transform: translateX(-50%);
-  }
-
-  &__account-header-input {
-    width: 55%;
-    height: 40px;
-
-    margin: 0 auto;
-
-    color: whitesmoke;
-    text-align: center;
-
-    transform: translateX(15px);
-  }
-
-  &__other-header-text {
-    margin: 0 auto;
-
-    font-size: 23px;
-    line-height: 22px;
-    color: whitesmoke;
-    font-family: 'Roboto', sans-serif;
   }
 }
 

@@ -1,9 +1,21 @@
 <template>
-  <div class="account">
+  <div class="account page">
+    <app-header
+      @showError="$emit('showError', $event)"
+      class="account__header app__header"
+    >
+      <app-editable-input
+        v-model="nickname"
+        @input="setInputValue('nickname')"
+        @valueChanged="onNicknameChanged"
+        class="account__header-input"
+      />
+    </app-header>
     <app-avatar-input
       @imageChanged="onImageChanged"
       :src="user ? user.avatar : null"
-      class="account__avatar-input"/>
+      class="account__avatar-input"
+    />
     <span class="account__info-error">{{ statusError }}</span>
     <div class="account__input-wrapper">
       <span class="account__info-label">Status:</span>
@@ -14,7 +26,8 @@
         borderColor="#3f51b5"
         initialBorderColor="#c5cae9"
         maxlength="30"
-        class="account__info-input"/>
+        class="account__info-input"
+      />
     </div>
     <span class="account__info-error">{{ ageError }}</span>
     <div class="account__input-wrapper">
@@ -26,68 +39,79 @@
         borderColor="#3f51b5"
         initialBorderColor="#c5cae9"
         maxlength="3"
-        class="account__info-input"/>
+        class="account__info-input"
+      />
     </div>
     <app-button
       @click="turnIsChangingPassword"
-      class="account__reset-button">
+      class="account__reset-button"
+    >
       Change password
     </app-button>
     <transition name="fade">
       <div
         v-if="isChangingPassword"
-        class="account__change-password-shadow">
-        <div class="account__change-password-wrapper">
-          <span
-            class="account__change-password-error">
-            {{ oldPasswordError }}
-          </span>
-          <app-editable-input
-            @valueChanged="changeOldPassword"
-            @input="setInputValue('oldPassword')"
-            placeholder="Password..."
-            type="password"
-            borderColor="#3f51b5"
-            initialBorderColor="#c5cae9"
-            class="account__change-password-input"/>
-          <span
-            class="account__change-password-error">
-            {{ newPasswordError }}
-          </span>
-          <app-editable-input
-            v-model="newPassword"
-            @input="setInputValue('newPassword')"
-            placeholder="New password..."
-            type="password"
-            borderColor="#3f51b5"
-            initialBorderColor="#c5cae9"
-            class="account__change-password-input"/>
-          <app-button
-            :disabled="isDisabledChange"
-            @click="changePassword"
-            class="account__change-password-change">
-            Change
-          </app-button>
-          <button
-            @click="turnIsChangingPassword"
-            class="account__change-password-close">
-            <img class="account__change-password-icon" src="@/assets/images/close.svg">
-          </button>
-          <span class="account__change-password-title">
-            Changing password
-          </span>
-        </div>
+        class="account__change-password-shadow cloak"
+      >
+        <app-form
+          :isLoading="isLoading"
+          :hasClose="true"
+          @formClosed="turnIsChangingPassword"
+          class="account__change-password-wrapper"
+        >
+          <template v-slot:data>
+            <span class="account__change-password-error">
+              {{ oldPasswordError }}
+            </span>
+            <app-editable-input
+              @valueChanged="changeOldPassword"
+              @input="setInputValue('oldPassword')"
+              placeholder="Password..."
+              type="password"
+              borderColor="#3f51b5"
+              initialBorderColor="#c5cae9"
+              class="account__change-password-input"
+            />
+            <span class="account__change-password-error">
+              {{ newPasswordError }}
+            </span>
+            <app-editable-input
+              v-model="newPassword"
+              @input="setInputValue('newPassword')"
+              placeholder="New password..."
+              type="password"
+              borderColor="#3f51b5"
+              initialBorderColor="#c5cae9"
+              class="account__change-password-input"
+            />
+            <app-button
+              :disabled="isDisabledChange"
+              @click="changePassword"
+              class="account__change-password-change"
+            >
+              Change
+            </app-button>
+          </template>
+
+          <template v-slot:title>
+            <span class="account__change-password-title">
+              Changing password
+            </span>
+          </template>
+        </app-form>
       </div>
     </transition>
   </div>
 </template>
 
 <script>
+import AppAvatarInput from '@/components/form-components/app-avatar-input'
+import AppEditableInput from '@/components/form-components/app-editable-input'
+import AppButton from '@/components/form-components/app-button'
+import AppForm from '@/components/form-components/app-form'
+import AppHeader from '@/components/app-header'
 import userService from '@/services/user.service'
-import appAvatarInput from '@/components/form-components/app-avatar-input'
-import appEditableInput from '@/components/form-components/app-editable-input'
-import appButton from '@/components/form-components/app-button'
-import { numeric, maxLength, minLength, or, sameAs } from 'vuelidate/lib/validators'
+import { numeric, maxLength, minLength, or, sameAs, required } from 'vuelidate/lib/validators'
 
 export default {
   name: 'Account',
@@ -95,12 +119,15 @@ export default {
     return {
       age: 'Loading...',
       status: 'Loading...',
+      nickname: 'Loading...',
       user: this.$store.state.user.getValue(),
       ageError: '',
       statusError: '',
+      nicknameError: '',
       oldPasswordError: '',
       newPasswordError: '',
       isChangingPassword: false,
+      isLoading: false,
       oldPassword: '',
       newPassword: ''
     }
@@ -110,6 +137,7 @@ export default {
       this.user = user
 
       if (this.user) {
+        this.nickname = this.user.nickname
         this.age = this.user.age ? this.user.age.toString() : ''
         this.status = this.user.status
       }
@@ -122,6 +150,9 @@ export default {
     },
     status: {
       maxLength: maxLength(30)
+    },
+    nickname: {
+      required
     },
     oldPassword: {
       async isEqual (oldPassword) {
@@ -176,6 +207,14 @@ export default {
           }
         }
 
+        if (this.$v.nickname.$dirty) {
+          if (!this.$v.nickname.required) {
+            this.nicknameError = 'Min count of chars is 1'
+          } else {
+            this.nicknameError = ''
+          }
+        }
+
         if (this.$v.newPassword.$dirty) {
           if (!this.$v.newPassword.minLength) {
             this.newPasswordError = 'Password must have 8 chars'
@@ -203,12 +242,16 @@ export default {
   methods: {
     async changePassword () {
       try {
+        this.isLoading = true
+
         const updatedUser = await userService.edit(this.user._id, { password: this.newPassword })
 
         this.$store.commit('setUser', updatedUser)
         this.isChangingPassword = false
       } catch (exception) {
         this.$emit('showError', exception.message)
+      } finally {
+        this.isLoading = false
       }
     },
     changeOldPassword (value) {
@@ -223,6 +266,7 @@ export default {
         case 'age': this.$v.age.$touch(); break
         case 'oldPassword': this.$v.oldPassword.$touch(); break
         case 'newPassword': this.$v.newPassword.$touch(); break
+        case 'nickname': this.$v.nickname.$touch(); break
       }
     },
     async onInfoChanged (field, value) {
@@ -234,6 +278,25 @@ export default {
         } catch (exception) {
           console.log(exception.message)
         }
+      }
+    },
+    async onNicknameChanged (nickname) {
+      if (!this.$v.nickname.required) {
+        this.nickname = this.user.nickname
+        this.$emit('showError', this.nicknameError)
+
+        return
+      }
+
+      try {
+        if (nickname !== this.user.nickname) {
+          const editedUser = await userService.edit(this.user._id, { nickname })
+          this.$store.commit('setUser', editedUser)
+        }
+      } catch (exception) {
+        this.$emit('showError', exception.message)
+
+        this.nickname = this.user.nickname
       }
     },
     async onImageChanged (image) {
@@ -248,9 +311,11 @@ export default {
     }
   },
   components: {
-    appAvatarInput,
-    appEditableInput,
-    appButton
+    AppHeader,
+    AppAvatarInput,
+    AppEditableInput,
+    AppButton,
+    AppForm
   }
 }
 </script>
@@ -264,9 +329,17 @@ export default {
   flex-direction: column;
   align-items: center;
 
-  height: 100%;
+  &__header-input {
+    width: 55%;
+    height: 40px;
 
-  background-color: whitesmoke;
+    margin: 0 auto;
+
+    color: whitesmoke;
+    text-align: center;
+
+    transform: translateX(15px);
+  }
 
   &__avatar-input {
     margin-top: 20px;
@@ -315,54 +388,20 @@ export default {
     margin-top: 30px;
   }
 
-  &__change-password-shadow {
-    position: absolute;
-
-    height: 100%;
-    width: 100%;
-
-    top: 0;
-    left: 0;
-
-    background-color: rgba(0, 0, 0, 0.4);
-  }
-
   &__change-password-wrapper {
     position: absolute;
-    display: flex;
-
-    flex-direction: column;
 
     top: 50%;
     left: 50%;
 
-    padding: 15px;
-
     width: 80%;
 
-    background-color: whitesmoke;
+    padding: 15px;
+
     border-radius: 5px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, $alpha: 0.3);
 
     transform: translate(-50%, -50%);
-  }
-
-  &__change-password-close {
-    position: absolute;
-
-    top: 15px;
-    right: 15px;
-
-    height: 20px;
-    width: 20px;
-
-    background-color: transparent;
-    border: none;
-  }
-
-  &__change-password-icon {
-    height: 100%;
-    width: 100%;
   }
 
   &__change-password-input {
@@ -392,11 +431,6 @@ export default {
   }
 
   &__change-password-title {
-    position: absolute;
-
-    top: 15px;
-    left: 15px;
-
     font-family: 'Roboto', sans-serif;
     color: $main-color;
     font-weight: bold;
@@ -411,17 +445,5 @@ export default {
 
     margin-top: 40px;
   }
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: .3s opacity;
-}
-
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-
-.fade-enter-to, .fade-leave {
-  opacity: 1;
 }
 </style>

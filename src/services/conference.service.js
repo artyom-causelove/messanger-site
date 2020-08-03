@@ -89,6 +89,129 @@ class ConferenceService extends Service {
 
     return object
   }
+
+  async getMessages (id) {
+    const apiKey = this.getApiKey()
+
+    const response = await fetch(this.rootUrl + `messages/by-message-block/${id}`, {
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      }
+    })
+
+    const object = await response.json()
+
+    if (object.errorMessage) {
+      throw new Error(object.errorMessage)
+    } else if (object.message) {
+      throw new Error(object.message)
+    }
+
+    delete object.__v
+    return object
+  }
+
+  async getMessageBlock (confId, page) {
+    const apiKey = this.getApiKey()
+
+    const response = await fetch(this.rootUrl + `message-blocks/by-conference/${confId}/page/${page}`, {
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      }
+    })
+
+    const object = await response.json()
+
+    if (object.errorMessage) {
+      throw new Error(object.errorMessage)
+    } else if (object.message) {
+      throw new Error(object.message)
+    }
+
+    delete object.__v
+
+    return object
+  }
+
+  async getParticipants (confId) {
+    const apiKey = this.getApiKey()
+
+    const response = await fetch(`${this.rootUrl}conferences/${confId}/participants`, {
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      }
+    })
+
+    const object = await response.json()
+
+    if (object.errorMessage) {
+      throw new Error(object.errorMessage)
+    } else if (object.message) {
+      throw new Error(object.message)
+    }
+
+    delete object.__v
+
+    return object
+  }
+
+  async addParticipant (confId, userOuterId) {
+    const bodyObj = JSON.stringify({
+      userOuterId
+    })
+    const apiKey = this.getApiKey()
+
+    const response = await fetch(`${this.rootUrl}conferences/${confId}/participants`, {
+      method: 'post',
+      body: bodyObj,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      }
+    })
+
+    const object = await response.json()
+
+    if (object.errorMessage) {
+      throw new Error(object.errorMessage)
+    } else if (object.message) {
+      throw new Error(object.message)
+    }
+
+    delete object.__v
+
+    return object
+  }
+
+  async deleteParticipant (confId, participantOuterId) {
+    const apiKey = this.getApiKey()
+
+    const response = await fetch(`${this.rootUrl}conferences/${confId}/participants/${participantOuterId}`, {
+      method: 'delete',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      }
+    })
+
+    const object = await response.json()
+
+    if (object.errorMessage) {
+      throw new Error(object.errorMessage)
+    } else if (object.message) {
+      throw new Error(object.message)
+    }
+
+    delete object.__v
+
+    return object
+  }
 }
 
 export default new ConferenceService()

@@ -117,6 +117,7 @@ export default Vue.extend({
 
     border: none;
     background-color: transparent;
+    -webkit-tap-highlight-color: transparent;
   }
 
   &__border {

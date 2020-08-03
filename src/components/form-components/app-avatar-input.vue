@@ -8,15 +8,18 @@
       type="file"
       class="app-avatar-input__input"
       ref="input">
-    <img
-      v-if="!src"
-      class="app-avatar-input__image"
-      src="@/assets/images/defaultAvatar.png">
-    <img
-      v-else
-      class="app-avatar-input__image"
-      :src="src"
-      ref="image">
+    <div class="app-avatar-input__image-wrapper">
+      <img
+        v-if="!src"
+        class="app-avatar-input__image"
+        src="@/assets/images/defaultAvatar.png">
+      <img
+        v-else
+        class="app-avatar-input__image"
+        :src="src"
+        ref="image">
+      <div class="app-avatar-input__decor"></div>
+    </div>
     <button
       v-if="isChangeble === 'true'"
       @click="onChangeImageClick"
@@ -76,6 +79,15 @@ export default Vue.extend({
     display: none;
   }
 
+  &__image-wrapper {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: 50%;
+  }
+
   &__image {
     height: 100%;
     width: 100%;
@@ -83,6 +95,19 @@ export default Vue.extend({
     object-fit: cover;
 
     border-radius: 50%;
+  }
+
+  &__decor {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: 50%;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
   }
 
   &__button {
@@ -98,6 +123,8 @@ export default Vue.extend({
     border-radius: 50%;
     background-color: whitesmoke;
     border: none;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   &__icon-wrapper {
@@ -113,6 +140,7 @@ export default Vue.extend({
 
     background-color: $main-color;
     border-radius: 50%;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
   }
 
   &__icon {

@@ -3,6 +3,8 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Account from '../views/Account.vue'
 import Messages from '../views/Messages.vue'
+import Notifications from '../views/Notifications.vue'
+import Conference from '../views/Conference.vue'
 
 Vue.use(VueRouter)
 
@@ -21,6 +23,17 @@ const routes = [
     path: '/messages',
     name: 'messages',
     component: Messages
+  },
+  {
+    path: '/notify',
+    name: 'notifications',
+    component: Notifications
+  },
+  {
+    path: '/conference/:name',
+    name: 'conference',
+    component: Conference,
+    props: true
   }
 ]
 

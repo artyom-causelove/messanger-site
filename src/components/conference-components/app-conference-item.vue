@@ -1,5 +1,7 @@
 <template>
-  <div class="app-conference-item">
+  <div
+    @click="$emit('click', $event)"
+    class="app-conference-item">
     <app-avatar-input
       :src="conference.avatar"
       isChangeble="false"
@@ -57,9 +59,12 @@ export default {
 
   &__avatar-input {
     height: 100%;
+
+    flex-shrink: 0;
   }
 
   &__info-wrapper {
+    overflow: hidden;
     position: relative;
     display: flex;
 
@@ -69,6 +74,10 @@ export default {
   }
 
   &__message-name {
+    overflow: hidden;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
     font-family: 'Roboto', sans-serif;
     font-size: 18px;
 

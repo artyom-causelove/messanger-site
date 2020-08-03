@@ -154,6 +154,50 @@ class UserService extends Service {
 
     return object
   }
+
+  async findByNickname (nickname) {
+    const apiKey = this.getApiKey()
+
+    const response = await fetch(`${this.rootUrl}users/find/nickname/${nickname}`, {
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      }
+    })
+
+    const object = await response.json()
+
+    if (object.errorMessage) {
+      throw new Error(object.errorMessage)
+    } else if (object.message) {
+      throw new Error(object.message)
+    }
+
+    return object
+  }
+
+  async getOuterInfo (outerId) {
+    const apiKey = this.getApiKey()
+
+    const response = await fetch(`${this.rootUrl}users/${outerId}`, {
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      }
+    })
+
+    const object = await response.json()
+
+    if (object.errorMessage) {
+      throw new Error(object.errorMessage)
+    } else if (object.message) {
+      throw new Error(object.message)
+    }
+
+    return object
+  }
 }
 
 export default new UserService()

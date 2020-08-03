@@ -33,6 +33,10 @@ export default {
     background-color: rgb(100, 100, 100);
   }
 
+  &:active {
+    background-color: $main-color-light;
+  }
+
   &__text {
     font-family: 'Roboto', sans-serif;
     font-size: 17px;

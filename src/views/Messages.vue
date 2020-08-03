@@ -1,10 +1,17 @@
 <template>
-  <div class="messages">
+  <div class="messages page">
+    <app-header
+      class="messages__header app__header">
+      <span class="messages__header-text">
+        {{ $route.name[0].toUpperCase() + $route.name.slice(1) }}
+      </span>
+    </app-header>
     <app-conference-item
+      @click="navigateToConf(conference)"
       v-for="conference of conferences"
       :key="conference._id"
       :conference="conference"
-      :message="null"
+      :message="$store.getters.getMessages(conference._id) ? $store.getters.getMessages(conference._id)[0] : null"
       class="messages__conference-item"/>
     <button
       @click="turnCreateConference"
@@ -23,39 +30,42 @@
     <transition name="fade">
       <div
         v-if="isCreating"
-        class="messages__create-conference-shadow">
-        <div
+        class="messages__create-conference-shadow cloak">
+        <app-form
+          :hasClose="true"
+          :isLoading="isLoading"
+          @formClosed="turnCreateConference"
           class="messages__create-conference-wrapper">
-          <app-avatar-input
-            :src="newConfImage"
-            @imageChanged="onNewConfImageChanged"
-            class="messages__create-conference-image-input"/>
-          <span
-            class="messages__create-conference-error">
-            {{ newConfTitleError }}
-          </span>
-          <app-editable-input
-            v-model="newConfTitle"
-            @input="setInputValue('newConfTitle')"
-            placeholder="Title..."
-            borderColor="#3f51b5"
-            initialBorderColor="#c5cae9"
-            class="messages__create-conference-input"/>
-          <button
-            @click="turnCreateConference"
-            class="messages__create-conference-сlose">
-            <img class="messages__create-conference-icon" src="@/assets/images/close.svg">
-          </button>
-          <app-button
-            @click="createNewConf"
-            :disabled="isDisabledCreate"
-            class="messages__create-conference-create">
-            Create
-          </app-button>
-          <span class="messages__create-conference-title">
-            Creating conference
-          </span>
-        </div>
+          <template v-slot:data>
+            <app-avatar-input
+              :src="newConfImage"
+              @imageChanged="onNewConfImageChanged"
+              class="messages__create-conference-image-input"/>
+            <span
+              class="messages__create-conference-error">
+              {{ newConfTitleError }}
+            </span>
+            <app-editable-input
+              v-model="newConfTitle"
+              @input="setInputValue('newConfTitle')"
+              placeholder="Title..."
+              borderColor="#3f51b5"
+              initialBorderColor="#c5cae9"
+              class="messages__create-conference-input"/>
+            <app-button
+              @click="createNewConf"
+              :disabled="isDisabledCreate"
+              class="messages__create-conference-create">
+              Create
+            </app-button>
+          </template>
+
+          <template v-slot:title>
+            <span class="messages__create-conference-title">
+              Creating conference
+            </span>
+          </template>
+        </app-form>
       </div>
     </transition>
   </div>
@@ -66,6 +76,8 @@ import AppConferenceItem from '@/components/conference-components/app-conference
 import AppAvatarInput from '@/components/form-components/app-avatar-input'
 import AppEditableInput from '@/components/form-components/app-editable-input'
 import AppButton from '@/components/form-components/app-button'
+import AppHeader from '@/components/app-header'
+import AppForm from '@/components/form-components/app-form'
 import conferenceService from '@/services/conference.service'
 import { required, minLength } from 'vuelidate/lib/validators'
 
@@ -75,6 +87,7 @@ export default {
     return {
       conferences: this.$store.state.conferences.getValue(),
       isCreating: false,
+      isLoading: false,
       newConfImage: null,
       newConfTitle: '',
       newConfTitleError: ''
@@ -133,20 +146,35 @@ export default {
       }
     },
     async createNewConf () {
+      this.isLoading = true
       try {
         const newConf = await conferenceService.create(this.newConfTitle, this.newConfImage)
 
         this.$store.commit('addConferences', newConf)
+        this.turnCreateConference()
       } catch (exception) {
         console.log(exception.message)
+      } finally {
+        this.isLoading = false
       }
+    },
+    navigateToConf (conference) {
+      this.$router.push({
+        name: 'conference',
+        params: {
+          name: conference.name,
+          conference
+        }
+      })
     }
   },
   components: {
     AppConferenceItem,
     AppEditableInput,
     AppAvatarInput,
-    AppButton
+    AppButton,
+    AppHeader,
+    AppForm
   }
 }
 </script>
@@ -159,7 +187,14 @@ export default {
 
   flex-direction: column;
 
-  background-color: whitesmoke;
+  &__header-text {
+    margin: 0 auto;
+
+    font-size: 23px;
+    line-height: 22px;
+    color: whitesmoke;
+    font-family: 'Roboto', sans-serif;
+  }
 
   &__conference-item {
     cursor: pointer;
@@ -192,6 +227,8 @@ export default {
 
     border: none;
     background-color: transparent;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
 
     transform: translateX(-50%);
 
@@ -200,23 +237,8 @@ export default {
     }
   }
 
-  &__create-conference-shadow {
-    position: absolute;
-
-    height: 100%;
-    width: 100%;
-
-    top: 0;
-    left: 0;
-
-    background-color: rgba(0, 0, 0, 0.4);
-  }
-
   &__create-conference-wrapper {
     position: absolute;
-    display: flex;
-
-    flex-direction: column;
 
     top: 50%;
     left: 50%;
@@ -225,29 +247,10 @@ export default {
 
     width: 80%;
 
-    background-color: whitesmoke;
     border-radius: 5px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, $alpha: 0.3);
 
     transform: translate(-50%, -50%);
-  }
-
-  &__create-conference-сlose {
-    position: absolute;
-
-    top: 15px;
-    right: 15px;
-
-    height: 20px;
-    width: 20px;
-
-    background-color: transparent;
-    border: none;
-  }
-
-  &__create-conference-icon {
-    height: 100%;
-    width: 100%;
   }
 
   &__create-conference-input {
@@ -264,11 +267,6 @@ export default {
   }
 
   &__create-conference-title {
-    position: absolute;
-
-    top: 15px;
-    left: 15px;
-
     font-family: 'Roboto', sans-serif;
     color: $main-color;
     font-weight: bold;
@@ -301,17 +299,5 @@ export default {
 
     color: $error-color;
   }
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: .3s opacity;
-}
-
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-
-.fade-enter-to, .fade-leave {
-  opacity: 1;
 }
 </style>

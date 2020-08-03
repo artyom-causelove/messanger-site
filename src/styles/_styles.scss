@@ -4,3 +4,33 @@
   border: 1px solid rgba($color: $main-color-light, $alpha: 0.5);
   border-radius: 2px;
 }
+
+.page {
+  height: 100%;
+
+  background-color: whitesmoke;
+}
+
+.cloak {
+  position: absolute;
+
+  height: 100%;
+  width: 100%;
+
+  top: 0;
+  left: 0;
+
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: .3s opacity;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to, .fade-leave {
+  opacity: 1;
+}
